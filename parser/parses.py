@@ -70,6 +70,7 @@ def dataframe_data(link):
     df.reset_index(inplace=True)
     df.rename(columns= {'index':'id'}, inplace=True)
     return df
+
 def dataframe_tags():
     tags = parser()
     index_tags, colls_tags, list_4_df_tags = [],[],[]
@@ -84,6 +85,7 @@ def dataframe_tags():
 
     df_tags.rename(columns={'index': 'tags'}, inplace=True)
     return df_tags
+
 current_tag = 'javascript'
 for x in range(1,3):
     csv_export = dataframe_data(f'https://stackoverflow.com/questions/tagged/{current_tag}?tab=active&page={x}&pagesize=50')
