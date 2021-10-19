@@ -15,8 +15,11 @@ DATA_DIRECTORY = 'data_' + str(uuid.uuid4())
 
 def write_to_csv_questions_for_tag(tag, directory, pages_to_parse=QUESTION_PAGES):
     for x in range(1, pages_to_parse + 1):
-        csv_export = parse_questions(x, current_tag=tag)
-        csv_export.to_csv(f'{directory}/{tag}.csv', index=True, sep=':', mode='a')
+        try:
+            csv_export = parse_questions(x, current_tag=tag)
+            csv_export.to_csv(f'{directory}/{tag}.csv', index=True, sep=':', mode='a')
+        except:
+            print("Page with tag {} and number {} failed to parse".format(tag, x))
 
 
 if __name__ == '__main__':
