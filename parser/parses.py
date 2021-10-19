@@ -3,41 +3,67 @@ from bs4 import BeautifulSoup as bs
 import re
 import pandas as pd
 
-
-
 HEADERS = {
     'User-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 YaBrowser/21.9.1.686 Yowser/2.5 Safari/537.36'}
 
 
-def parser():
-    value_list2 = []
-    URL = 'https://stackoverflow.com/tags'
-    response = requests.get(URL, headers=HEADERS)
+def parse_tags_page(page_number):
+    """
+    Parses page with tags, e.g. https://stackoverflow.com/tags?page=2&tab=popular
+
+    :param page_number: number of page which shall be parsed
+    :return: tags in from of dictionary
+    """
+    url = f'https://stackoverflow.com/tags?page={page_number}&tab=popular'
+    response = requests.get(url, headers=HEADERS)
     soap = bs(response.content, 'html.parser')
     items = soap.find_all('div', class_='s-card')
 
+    tags = dict()
     for item in items:
         try:
-            value_list2.append({item.find('a', class_="post-tag").get_text(strip=True): item.find('div',
-                                                                                                  class_="mt-auto d-flex jc-space-between fs-caption fc-black-400").get_text().split()[
-                0]})
+            value = \
+                item.find('div', class_="mt-auto d-flex jc-space-between fs-caption fc-black-400").get_text().split()[0]
+            tags[item.find('a', class_="post-tag").get_text(strip=True)] = value
         except AttributeError:
             continue
 
-    return value_list2
+    return tags
 
 
-def tag_parse(link):
+def parse_tags(page_number):
+    """
+    Calls function @ref parse_tags_page and convert its output to dataframe
 
-    thousand = lambda x: int(x[:x.index('k')]) * 1000 if 'k' in x else (int(x) if x!= '' else 0)
-    pattern_id = re.compile('question-summary-(\d*)')
-    pattern_views = re.compile('(\d*k*) views')
-    pattern_answer = re.compile('(\d*)answer')
-    values_1 = list()
+    :param page_number: number of page which shall be parsed
+    :return: data frame of tags
+    """
+    tags = parse_tags_page(page_number)
+    df_tags = pd.DataFrame(tags.values(), index=tags.keys(), columns=['amount_of_questions'])
+    df_tags.reset_index(inplace=True)
+    df_tags.rename(columns={'index': 'tags'}, inplace=True)
+    return df_tags
 
+
+def parse_questions_page(link):
+    """
+    Parse page of questions
+
+    :param link: link to questions page, which shall be parsed
+    :return: list of parsed questions
+    """
     response = requests.get(link, headers=HEADERS)
     soap = bs(response.content, 'html.parser')
     items = soap.find_all('div', class_='question-summary')
+
+    def thousand(x):
+        return int(x[:x.index('k')]) * 1000 if 'k' in x else (int(x) if x != '' else 0)
+
+    pattern_id = re.compile('question-summary-(\d*)')
+    pattern_views = re.compile('(\d*k*) views')
+    pattern_answer = re.compile('(\d*)answer')
+
+    questions = list()
     for item in items:
         try:
             answers_accepted = False
@@ -54,49 +80,26 @@ def tag_parse(link):
 
             vote = item.find('span', class_='vote-count-post')
             views = item.find('div', class_='views')
-            values_1.append({pattern_id.search(item['id'])[1]: {'vote': int(vote.get_text()), 'answer': answers,
-                                                                'views': thousand(
-                                                                    pattern_views.search(views.get_text())[1]),
-                                                                'accepted': answers_accepted}})
+            questions.append({'id': pattern_id.search(item['id'])[1],
+                              'vote': int(vote.get_text()), 'answer': answers,
+                              'views': thousand(
+                                  pattern_views.search(views.get_text())[1]),
+                              'accepted': answers_accepted})
         except AttributeError:
             continue
 
-    return values_1
+    return questions
 
 
-def dataframe_data(link, current_tag):
-    dfx = tag_parse(link)
-    index_data, colls, list_4_df_data = [], [], []
+def parse_questions(page_number, current_tag):
+    """
+    Parse page of questions
 
-    for _ in dfx:
-        index_data.append((list(_.keys())[0]))
-        colls = list(_[(list(_.keys())[0])].keys())
-        list_4_df_data.append(list(_[(list(_.keys())[0])].values()))
-
-    df = pd.DataFrame(list_4_df_data, index=index_data, columns=colls)
-    df.reset_index(inplace=True)
-    df.rename(columns={'index': 'id'}, inplace=True)
+    :param page_number: page number which shall be parsed
+    :param current_tag: name of tag
+    :return: data frame questions and related statistic
+    """
+    link = f'https://stackoverflow.com/questions/tagged/{current_tag}?tab=active&page={page_number}&pagesize=50'
+    df = pd.DataFrame(parse_questions_page(link))
     df.insert(0, 'tag', current_tag)
     return df
-
-
-
-def dataframe_tags(tags):
-    '''Extract all tags'''
-
-    index_tags, colls_tags, list_4_df_tags = [], [], []
-
-    for x in tags:
-        list_4_df_tags.append(list(x.values())[0])
-        index_tags.append(list(x.keys())[0])
-
-    colls_tags = ['amount_of_questions']
-    df_tags = pd.DataFrame(list_4_df_tags, index=index_tags, columns=colls_tags)
-
-    df_tags.reset_index(inplace=True)
-
-    df_tags.rename(columns={'index': 'tags'}, inplace=True)
-    return df_tags
-
-
-
