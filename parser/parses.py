@@ -1,9 +1,9 @@
 import requests
 from bs4 import BeautifulSoup as bs
 import re
+import pandas as pd
+import csv
 
-test_dict = {'python': {'vote': 16, 'answered_accepted': 28, 'question': 50,
-                        'views': 200, 'answered': 50, 'req_amount': 500}}
 value_list1 = []
 value_list2 = []
 HEADERS = {
@@ -11,8 +11,6 @@ HEADERS = {
 
 
 def parser():
-
-    pattern = re.compile('(\d*) questions')
     URL = 'https://stackoverflow.com/tags'
     response = requests.get(URL, headers=HEADERS)
     soap = bs(response.content, 'html.parser')
@@ -23,14 +21,17 @@ def parser():
             value_list2.append({item.find('a', class_ = "post-tag").get_text(strip = True):item.find('div', class_ = "mt-auto d-flex jc-space-between fs-caption fc-black-400").get_text().split()[0]})
         except AttributeError:
             continue
-    print(value_list2)
+    return(value_list2)
 
 
-def tag_parse(link = None):
-    values_dict = {}
+def tag_parse(link):
+    thousand = lambda x:int(x[:x.index('k')])*1000 if 'k' in x else int(x)
+    pattern_id = re.compile('question-summary-(\d*)')
+    pattern_views = re.compile('(\d*k*) views')
+    pattern_answer = re.compile('(\d*)answer')
     values_1 = list()
-    URL = 'https://stackoverflow.com/questions/tagged/javascript?tab=active&page=1&pagesize=50'
-    response = requests.get(URL, headers=HEADERS)
+
+    response = requests.get(link, headers=HEADERS)
     soap = bs(response.content, 'html.parser')
     items = soap.find_all('div', class_='question-summary')
     for item in items:
@@ -38,20 +39,55 @@ def tag_parse(link = None):
             answers_accepted = False
             answers = 0
             try:
-                answers = item.find('div',class_='answered').get_text()
+                answers = int(pattern_answer.search(item.find('div',class_='answered').get_text())[1])
             except AttributeError:
                 pass
             try:
-                answers = item.find('div', class_='answered-accepted').get_text()
+                answers = int(pattern_answer.search(item.find('div', class_='answered-accepted').get_text())[1])
                 answers_accepted = True
             except AttributeError:
                 pass
 
             vote = item.find('span',class_='vote-count-post')
             views = item.find('div', class_ ='views')
-            values_1.append({item['id']:{'vote':vote.get_text(),'answer':answers,'views': views.get_text(),'accepted' : answers_accepted}})
+            values_1.append({pattern_id.search(item['id'])[1]:{'vote':int(vote.get_text()),'answer':answers,'views': thousand(pattern_views.search(views.get_text())[1]),'accepted' : answers_accepted}})
         except AttributeError:
             continue
 
-    print(values_1)
-tag_parse()
+    return values_1
+def dataframe_data(link):
+    dfx = tag_parse(link)
+    index_data,  colls, list_4_df_data = [],[],[]
+
+    for _ in dfx:
+        index_data.append((list(_.keys())[0]))
+        colls = list(_[(list(_.keys())[0])].keys())
+        list_4_df_data.append(list(_[(list(_.keys())[0])].values()))
+
+
+    df = pd.DataFrame(list_4_df_data,index=index_data,columns=colls)
+
+    df.reset_index(inplace=True)
+    df.rename(columns= {'index':'id'}, inplace=True)
+    return df
+def dataframe_tags():
+    tags = parser()
+    index_tags, colls_tags, list_4_df_tags = [],[],[]
+    for x in tags:
+        list_4_df_tags.append(list(x.values())[0])
+        index_tags.append(list(x.keys())[0])
+        colls_tags = ['views']
+
+    df_tags = pd.DataFrame(list_4_df_tags,index=index_tags,columns=colls_tags)
+
+    df_tags.reset_index(inplace=True)
+
+    df_tags.rename(columns={'index': 'tags'}, inplace=True)
+    return df_tags
+current_tag = 'javascript'
+for x in range(1,3):
+    csv_export = dataframe_data(f'https://stackoverflow.com/questions/tagged/{current_tag}?tab=active&page={x}&pagesize=50')
+
+    csv_export.to_csv(f'{current_tag}_{x}.csv')
+
+
