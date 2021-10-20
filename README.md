@@ -20,7 +20,7 @@ python3 main.py --tags_pages 5
 Generate csv files for all tags from first 5 tags pages (https://stackoverflow.com/tags).
 Parse 50 question pages for every tags (there is 50 questions per page):
 ```bash
-python3 main.py --questions_pages 50
+python3 main.py --tags_pages 5 --questions_pages 50
 ```
 
 ## Data description
@@ -39,7 +39,7 @@ Record example:
 
 * tag - name of tag;
 * id - question id. Id is unique for csv file;
-* vote - number of votes - how the community indicates which questions and answers are most useful and appropriate
+* vote - number of votes - how the community indicates which questions and answers are most useful and appropriate;
 * answer - how many answers;
 * views - how many users saw the question;
 * accepted - indicates if question has accepted answer or not.
