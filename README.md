@@ -42,7 +42,8 @@ Record example:
 * vote - number of votes - how the community indicates which questions and answers are most useful and appropriate;
 * answer - how many answers;
 * views - how many users saw the question;
-* accepted - indicates if question has accepted answer or not.
+* accepted - indicates if question has accepted answer or not;
+* date - date when question was created in format yyyy-mm-dd.
 
 ![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/question_example.png)
 
