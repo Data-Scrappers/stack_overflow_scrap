@@ -46,7 +46,7 @@ Record example:
 * views - how many users saw the question
 * accepted - indicates if question has accepted answer or not
 
-[![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/question_example.png)]
+![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/question_example.png)
 
 ## Example visualization
 
