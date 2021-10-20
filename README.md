@@ -35,19 +35,16 @@ Source example: https://stackoverflow.com/questions/tagged/python?tab=newest&pag
 
 Record example:
 
-|   | tag | id     | vote | answer | views | accepted |
-|---|-----|--------|------|--------|-------|----------|
-|0  |git  |69640112|0     |0       |5      |False     |
+![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/table_example.png)
 
-* tag - name of tag
-* id - question id
+* tag - name of tag;
+* id - question id. Id is unique for csv file;
 * vote - number of votes - how the community indicates which questions and answers are most useful and appropriate
-* answer - how many answers
-* views - how many users saw the question
-* accepted - indicates if question has accepted answer or not
+* answer - how many answers;
+* views - how many users saw the question;
+* accepted - indicates if question has accepted answer or not.
 
 ![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/question_example.png)
 
-## Example visualization
 
 
