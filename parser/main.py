@@ -1,19 +1,13 @@
 import os
 import uuid
-from parses import parse_tags, parse_questions
+import argparse
+from parses import parse_tags_page, parse_questions
 
-# Every page contains 50 questions.
-# @ref QUESTION_PAGES * 50 records will be
-# in tag csv file
-QUESTION_PAGES = 500
-# Each page with tags contains 36 tags.
-# For every tag @ref QUESTION_PAGES will be parsed
-TAGS_PAGES = 100
 # Directory to which output csv files will be generated
 DATA_DIRECTORY = 'data_' + str(uuid.uuid4())
 
 
-def write_to_csv_questions_for_tag(tag, directory, pages_to_parse=QUESTION_PAGES):
+def write_to_csv_questions_for_tag(tag, directory, pages_to_parse):
     for x in range(1, pages_to_parse + 1):
         try:
             csv_export = parse_questions(x, current_tag=tag)
@@ -23,17 +17,33 @@ def write_to_csv_questions_for_tag(tag, directory, pages_to_parse=QUESTION_PAGES
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--questions_pages', type=int, choices=range(0, 500), default=100,
+                        help='Number of questions pages to parse. Every page contains 50 questions.')
+    parser.add_argument('--tags_pages', type=int, choices=range(0, 10), default=1,
+                        help='Number of tags pages to parse. Every page with tags contains 36 tags. '
+                             'If tags list is not empty, then this value will be ignored.')
+    parser.add_argument('--tags', '--names-list', nargs='+', default=[],
+                        help='List of tags to parse. If empty, then all tags from first @ref tags_pages'
+                             ' will be parsed.')
+
+    args = parser.parse_args()
+
     data_directory = DATA_DIRECTORY
     if not os.path.exists(data_directory):
         os.makedirs(data_directory)
 
-    for page in range(1, TAGS_PAGES + 1):
-        print("Start parsing page {}/{} of tags".format(page, TAGS_PAGES))
-        tags_df = parse_tags(page)
-        tags_df.to_csv(f'{data_directory}/all_tags.csv', index=True, sep=':', mode='a')
+    if not args.tags:
+        for page in range(1, args.tags_pages + 1):
+            print("Start parsing page {}/{} of tags".format(page, args.tags_pages))
+            tags = parse_tags_page(page)
 
-        for current_tag in tags_df['tags']:
+            for current_tag in tags:
+                print("Start parsing {} tag".format(current_tag))
+                write_to_csv_questions_for_tag(current_tag, data_directory, args.questions_pages)
+    else:
+        for current_tag in args.tags:
             print("Start parsing {} tag".format(current_tag))
-            write_to_csv_questions_for_tag(current_tag, data_directory)
+            write_to_csv_questions_for_tag(current_tag, data_directory, args.questions_pages)
 
     print("Data generation is finished, check {} repository".format(data_directory))

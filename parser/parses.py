@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 import re
 import pandas as pd
 
+
 HEADERS = {
     'User-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 YaBrowser/21.9.1.686 Yowser/2.5 Safari/537.36'}
 
@@ -52,7 +53,11 @@ def parse_questions_page(link):
     :param link: link to questions page, which shall be parsed
     :return: list of parsed questions
     """
-    response = requests.get(link, headers=HEADERS)
+    try:
+        response = requests.get(link, headers=HEADERS, timeout=60)
+    except requests.exceptions.Timeout:
+        return
+
     soap = bs(response.content, 'html.parser')
     items = soap.find_all('div', class_='question-summary')
 
@@ -77,14 +82,15 @@ def parse_questions_page(link):
                 answers_accepted = True
             except AttributeError:
                 pass
-
+            date = item.find('span',class_ = 'relativetime')
             vote = item.find('span', class_='vote-count-post')
             views = item.find('div', class_='views')
             questions.append({'id': pattern_id.search(item['id'])[1],
                               'vote': int(vote.get_text()), 'answer': answers,
                               'views': thousand(
                                   pattern_views.search(views.get_text())[1]),
-                              'accepted': answers_accepted})
+                              'accepted': answers_accepted,
+                              'date': date['title'][:10]})
         except AttributeError:
             continue
 
@@ -99,7 +105,8 @@ def parse_questions(page_number, current_tag):
     :param current_tag: name of tag
     :return: data frame questions and related statistic
     """
-    link = f'https://stackoverflow.com/questions/tagged/{current_tag}?tab=active&page={page_number}&pagesize=50'
+    link = f'https://stackoverflow.com/questions/tagged/{current_tag}?tab=newest&page={page_number}&pagesize=50'
     df = pd.DataFrame(parse_questions_page(link))
-    df.insert(0, 'tag', current_tag)
+    if not df.empty:
+        df.insert(0, 'tag', current_tag)
     return df
