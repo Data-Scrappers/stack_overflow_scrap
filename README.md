@@ -33,19 +33,26 @@ Values are split by ':' delimiter.
 
 Source example: https://stackoverflow.com/questions/tagged/python?tab=newest&page=5&pagesize=50
 
-Record example:
-
-![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/table_example.png)
-
-* tag - name of tag;
-* id - question id. Id is unique for csv file;
-* vote - number of votes - how the community indicates which questions and answers are most useful and appropriate;
-* answer - how many answers;
-* views - how many users saw the question;
-* accepted - indicates if question has accepted answer or not;
-* date - date when question was created in format yyyy-mm-dd.
+**Record example:**
 
 ![Question Example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/question_example.png)
+
+|   | tag           | id      | vote   | answer | views  | accepted |
+|---|---------------|---------|--------|--------|--------|----------|
+|6  |beautifulsoup  |23377533 |109     |5       | 197000 |True      |
+
+* **tag** - name of tag;
+* **id** - question id. Id is unique for csv file;
+* **vote** - number of votes - how the community indicates which questions and answers are most useful and appropriate;
+* **answer** - how many answers;
+* **views** - how many users saw the question;
+* **accepted** - indicates if question has accepted answer or not;
+* **date** - date when question was created in format yyyy-mm-dd.
+
+**Dataframe example:**
+
+![Dataframe example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/table_example.png)
+
 
 
 
