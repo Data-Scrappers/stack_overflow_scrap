@@ -5,6 +5,13 @@
 Following repository contains Data Set collected from Stack Overflow  (https://stackoverflow.com/)
 and script used for data collection.
 
+## Inspiration
+
+* How popular are some topics on Stack Overflow?
+* What popular topics have low answers per questions ratio?
+* What python libraries have high accepted answers per questions ratio?
+This information might help to decide between several libs with same functionality.
+
 ## Script usage
 
 Generate csv files for selected tags:
@@ -53,6 +60,16 @@ Source example: https://stackoverflow.com/questions/tagged/python?tab=newest&pag
 
 ![Dataframe example](https://github.com/Data-Scrappers/stack_overflow_scrap/blob/main/doc_images/table_example.png)
 
+**Additional tool: Tags labelling**
 
+If you need to generate csv file with additional information about every tag,
+you can launch `label_tags.py` script:
 
+```bash
+python3 label_tags.py --path '../data/' --tags 'labelled_tags.csv'
+```
+
+``label_tool/labelled_tags.csv`` file contains all tags, where 
+* programming language related tags labelled with ``language``
+* python modules related tags labelled with ``python-lib``
 
